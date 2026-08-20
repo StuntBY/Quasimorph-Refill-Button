@@ -83,10 +83,14 @@
 	    <HintPath>..\..\..\..\..\SteamLibrary\steamapps\common\Quasimorph\Quasimorph_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
 	    <Private>False</Private>
 	  </Reference>
-	  <Reference Include="UnityEngine.InputLegacyModule">
-	    <HintPath>..\..\..\..\..\SteamLibrary\steamapps\common\Quasimorph\Quasimorph_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
-	    <Private>False</Private>
-	  </Reference>
+<Reference Include="UnityEngine.InputLegacyModule">
+    <HintPath>..\..\..\..\..\SteamLibrary\steamapps\common\Quasimorph\Quasimorph_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+    <Private>False</Private>
+  </Reference>
+  <Reference Include="UnityEngine.AudioModule">
+    <HintPath>..\..\..\..\..\SteamLibrary\steamapps\common\Quasimorph\Quasimorph_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
+    <Private>False</Private>
+  </Reference>
 	</ItemGroup>
 	<ItemGroup>
 		<Reference Update="System">
