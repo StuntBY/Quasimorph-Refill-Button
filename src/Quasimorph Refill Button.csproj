@@ -6,7 +6,7 @@
 	</PropertyGroup>
 	<PropertyGroup>
 		<!-- Set this value to your mod's Steam Workhop ID -->
-		<SteamId></SteamId>
+		<SteamId>3786633847</SteamId>
 	</PropertyGroup>
 	<PropertyGroup>
 		<GAME_NAME>Quasimorph</GAME_NAME>

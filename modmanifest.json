@@ -1,7 +1,13 @@
 {
-  "UniqueModName": "Stunt_Quasimorph_Refill_Button",
+  "UniqueModName": "Quasimorph_Refill_Button",
   "Assemblies": [
-    "Quasimorph_Refill_Button.dll"
+    "Quasimorph Refill Button.dll"
   ],
-  "Dependencies": []
+  "Dependencies": [],
+  "SteamTags":
+  [
+	"1.0",
+	"UI",
+	"Quality of Life"
+  ]
 }
