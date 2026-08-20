@@ -10,11 +10,11 @@ namespace Quasimorph_Refill_Button
     {
         public const int RefillCommandValue = 200000;
 
-        public const string RefillCaption = "Refill";
+        public const string RefillCaptionKey = "mod.refillbutton.caption";
 
         public const KeyCode RefillHotkeyKey = KeyCode.F;
 
-        public static string RefillCaptionWithHotkey => ("F ").WrapInColor(Colors.Yellow) + RefillCaption;
+        public static string RefillCaptionWithHotkey => ("F ").WrapInColor(Colors.Yellow) + (Localization.HasKey(RefillCaptionKey) ? Localization.Get(RefillCaptionKey) : "Refill");
 
         public static bool CanShowRefill(BasePickupItem item)
         {
