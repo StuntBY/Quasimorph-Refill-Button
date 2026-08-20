@@ -19,10 +19,9 @@ namespace Quasimorph_Refill_Button
         public static bool CanShowRefill(BasePickupItem item)
         {
             return item != null
-                && item.IsStackable
-                && item.StackCount < item.MaxStack
                 && !item.Locked
-                && !item.IsImplicit;
+                && !item.IsImplicit
+                && ((item.IsStackable && !item.IsFullStack) || (item.IsUsable && !item.HasFullUsages));
         }
 
         public static BasePickupItem GetContextMenuItem(object screen)
@@ -167,6 +166,30 @@ namespace Quasimorph_Refill_Button
                     {
                         continue;
                     }
+                    if (target.IsUsable && target.IsFullStack && !target.HasFullUsages && source.IsUsable)
+                    {
+                        UsableItemComponent targetComp = target.Comp<UsableItemComponent>();
+                        UsableItemComponent sourceComp = source.Comp<UsableItemComponent>();
+                        if (targetComp == null || sourceComp == null || sourceComp.CurrentUsageValue <= 0)
+                        {
+                            continue;
+                        }
+                        target.UpdateUsagesAtReStack(source);
+                        target.StackCount = (short)targetComp.GetStackCount();
+                        source.StackCount = (short)sourceComp.GetStackCount();
+                        target.UpdateExpireAtRestack(spaceTime, source);
+                        source.UpdateExpireAtRestack(spaceTime, target);
+                        any = true;
+                        if (sourceComp.CurrentUsageValue <= 0)
+                        {
+                            source.Storage?.Remove(source);
+                        }
+                        if (targetComp.IsMax)
+                        {
+                            return any;
+                        }
+                        continue;
+                    }
                     if (!ItemInteractionSystem.CanMerge(source, target))
                     {
                         continue;
@@ -175,7 +198,7 @@ namespace Quasimorph_Refill_Button
                     if (ItemInteractionSystem.Merge(spaceTime, source, target, ref emptyAfterMerge))
                     {
                         any = true;
-                        if (target.IsFullStack)
+                        if (target.IsFullStack && target.HasFullUsages)
                         {
                             return any;
                         }
