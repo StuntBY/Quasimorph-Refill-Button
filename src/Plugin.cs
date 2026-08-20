@@ -28,7 +28,9 @@ namespace Quasimorph_Refill_Button
 
             Config = ModConfig.LoadConfig(ConfigDirectories.ConfigPath);
 
-            new Harmony("Stunt_" + ConfigDirectories.ModAssemblyName).PatchAll();
+            Harmony harmony = new Harmony("Stunt_" + ConfigDirectories.ModAssemblyName);
+            InputHelperSuppressPatch.Patch(harmony);
+            harmony.PatchAll();
         }
 
     }

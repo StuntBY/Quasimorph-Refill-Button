@@ -2,6 +2,7 @@ using HarmonyLib;
 using MGSC;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace Quasimorph_Refill_Button
 {
@@ -10,6 +11,10 @@ namespace Quasimorph_Refill_Button
         public const int RefillCommandValue = 200000;
 
         public const string RefillCaption = "Refill";
+
+        public const KeyCode RefillHotkeyKey = KeyCode.F;
+
+        public static string RefillCaptionWithHotkey => ("F ").WrapInColor(Colors.Yellow) + RefillCaption;
 
         public static bool CanShowRefill(BasePickupItem item)
         {

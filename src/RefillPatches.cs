@@ -84,7 +84,7 @@ namespace Quasimorph_Refill_Button
             {
                 return;
             }
-            menu.SetupCommand(RefillService.RefillCaption, RefillService.RefillCommandValue);
+            menu.SetupCommand(RefillService.RefillCaptionWithHotkey, RefillService.RefillCommandValue);
             AccessTools.Method(typeof(CommonContextMenu), "InitSize").Invoke(menu, new object[] { 0 });
             AccessTools.Method(typeof(CommonContextMenu), "RecalculatePosition").Invoke(menu, null);
         }
