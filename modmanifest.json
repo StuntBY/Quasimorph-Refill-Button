@@ -1,0 +1,7 @@
+{
+  "UniqueModName": "Stunt_Quasimorph_Refill_Button",
+  "Assemblies": [
+    "Quasimorph_Refill_Button.dll"
+  ],
+  "Dependencies": []
+}
