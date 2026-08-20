@@ -37,6 +37,10 @@ namespace Quasimorph_Refill_Button
             {
                 return false;
             }
+            if (RefillService.IsShipCargoItem(item))
+            {
+                return true;
+            }
             Creatures creatures = Traverse.Create(screen).Field("_creatures").GetValue<Creatures>();
             return creatures?.Player?.CreatureData?.Inventory?.AllContainers.Contains(item.Storage) == true;
         }

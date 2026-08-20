@@ -46,13 +46,35 @@ namespace Quasimorph_Refill_Button
                 return;
             }
 
-            bool any = TryRefill(item, GetShipRefillSources(), SingletonMonoBehaviour<ItemFactory>.Instance.GetGameTimeNow());
+            List<ItemStorage> sources = GetShipRefillSources(screen);
+            Inventory operatorInventory = GetOperatorInventory(screen);
+            if (operatorInventory != null && operatorInventory.AllContainers.Contains(item.Storage))
+            {
+                sources.AddRange(operatorInventory.AllContainers);
+            }
+
+            bool any = TryRefill(item, sources, SingletonMonoBehaviour<ItemFactory>.Instance.GetGameTimeNow());
             PlayFeedback(any);
             screen.RefreshView();
         }
 
+        private static Inventory GetOperatorInventory(ScreenWithShipCargo screen)
+        {
+            Mercenary merc = Traverse.Create(screen).Field("_merc").GetValue<Mercenary>();
+            return merc?.CreatureData?.Inventory;
+        }
+
         public static bool IsValidShipRefillStorage(ScreenWithShipCargo screen, BasePickupItem item)
         {
+            if (IsShipCargoItem(item))
+            {
+                return true;
+            }
+            if (screen is FastTradeScreen)
+            {
+                Station station = Traverse.Create(screen).Field("_station").GetValue<Station>();
+                return station?.Stash == item.Storage;
+            }
             if (screen is TradeShuttleScreen)
             {
                 return IsTradeShuttleTarget(screen, item);
@@ -61,13 +83,18 @@ namespace Quasimorph_Refill_Button
             return merc?.CreatureData?.Inventory?.AllContainers.Contains(item.Storage) == true;
         }
 
+        public static bool IsShipCargoItem(BasePickupItem item)
+        {
+            if (item?.Storage == null)
+            {
+                return false;
+            }
+            MagnumCargo cargo = SingletonMonoBehaviour<SpaceGameMode>.Instance?.Get<MagnumCargo>();
+            return cargo != null && (cargo.ShipCargo.Contains(item.Storage) || item.Storage == cargo.FridgeStorage);
+        }
+
         private static bool IsTradeShuttleTarget(ScreenWithShipCargo screen, BasePickupItem item)
         {
-            MagnumCargo cargo = SingletonMonoBehaviour<SpaceGameMode>.Instance.Get<MagnumCargo>();
-            if (cargo.ShipCargo.Contains(item.Storage) || item.Storage == cargo.FridgeStorage)
-            {
-                return true;
-            }
             TradeShuttleDepartment department = Traverse.Create(screen).Field("_tradeShuttleDepartment").GetValue<TradeShuttleDepartment>();
             return department != null && department.TradeShuttleStorage == item.Storage;
         }
@@ -92,9 +119,38 @@ namespace Quasimorph_Refill_Button
             return sources;
         }
 
+        private static List<ItemStorage> GetShipRefillSources(ScreenWithShipCargo screen)
+        {
+            List<ItemStorage> sources = GetShipRefillSources();
+            if (screen is FastTradeScreen)
+            {
+                Station station = Traverse.Create(screen).Field("_station").GetValue<Station>();
+                if (station?.Stash != null)
+                {
+                    sources.Add(station.Stash);
+                }
+            }
+            return sources;
+        }
+
         public static void HandleRaidRefill(InventoryScreen screen)
         {
             Traverse t = Traverse.Create(screen);
+            BasePickupItem item = GetContextMenuItem(screen);
+            if (item == null || !CanShowRefill(item))
+            {
+                PlayFeedback(false);
+                return;
+            }
+
+            if (IsShipCargoItem(item))
+            {
+                bool anyCargo = TryRefill(item, GetShipRefillSources(), SingletonMonoBehaviour<ItemFactory>.Instance.GetGameTimeNow());
+                PlayFeedback(anyCargo);
+                screen.RefreshItemsList();
+                return;
+            }
+
             Creatures creatures = t.Field("_creatures").GetValue<Creatures>();
             TurnController turnController = t.Field("_turnController").GetValue<TurnController>();
             TurnMetadata turnMetadata = t.Field("_turnMetadata").GetValue<TurnMetadata>();
@@ -104,19 +160,13 @@ namespace Quasimorph_Refill_Button
                 return;
             }
 
-            BasePickupItem item = GetContextMenuItem(screen);
             Inventory inventory = creatures.Player?.CreatureData?.Inventory;
-            if (item == null || inventory == null || !inventory.AllContainers.Contains(item.Storage))
+            if (inventory == null || !inventory.AllContainers.Contains(item.Storage))
             {
-                return;
-            }
-            if (!CanShowRefill(item))
-            {
-                PlayFeedback(false);
                 return;
             }
 
-            List<ItemStorage> sources = CollectRaidSources(t.Field("_tabsView").GetValue<ItemTabsView>());
+            List<ItemStorage> sources = CollectRaidSources(inventory, t.Field("_tabsView").GetValue<ItemTabsView>());
             if (sources.Count == 0)
             {
                 PlayFeedback(false);
@@ -136,18 +186,28 @@ namespace Quasimorph_Refill_Button
             PlayerInteractionSystem.EndPlayerTurn(creatures, PlayerEndTurnContext.InventoryInteraction);
         }
 
-        private static List<ItemStorage> CollectRaidSources(ItemTabsView tabsView)
+        private static List<ItemStorage> CollectRaidSources(Inventory inventory, ItemTabsView tabsView)
         {
             List<ItemStorage> result = new List<ItemStorage>();
             object content = tabsView?.FirstSelectedTab()?.Content;
             if (content is ItemStorage storage)
             {
-                result.Add(storage);
+                if (!inventory.AllContainers.Contains(storage))
+                {
+                    result.Add(storage);
+                }
             }
             else if (content is CorpseStorage corpse)
             {
-                result.AddRange(corpse.CreatureData?.Inventory?.AllContainers ?? new List<ItemStorage>());
+                foreach (ItemStorage container in corpse.CreatureData?.Inventory?.AllContainers ?? new List<ItemStorage>())
+                {
+                    if (!inventory.AllContainers.Contains(container))
+                    {
+                        result.Add(container);
+                    }
+                }
             }
+            result.AddRange(inventory.AllContainers);
             return result;
         }
 
