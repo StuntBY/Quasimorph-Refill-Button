@@ -42,8 +42,16 @@ namespace Quasimorph_Refill_Button
 
             MagnumCargo cargo = SingletonMonoBehaviour<SpaceGameMode>.Instance.Get<MagnumCargo>();
             MagnumProgression ship = SingletonMonoBehaviour<SpaceGameMode>.Instance.Get<MagnumProgression>();
-            List<ItemStorage> sources = new List<ItemStorage>(cargo.ShipCargo);
-            if (ship != null && ship.HasStoreFridge)
+            List<ItemStorage> sources = new List<ItemStorage>();
+            foreach (ItemStorage storage in cargo.ShipCargo)
+            {
+                MagnumCargoTab tab = cargo.GetTab(storage);
+                if (tab != null && tab.IncludeToSort)
+                {
+                    sources.Add(storage);
+                }
+            }
+            if (ship != null && ship.HasStoreFridge && cargo.FridgeTab.IncludeToSort)
             {
                 sources.Add(cargo.FridgeStorage);
             }
