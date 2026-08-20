@@ -33,9 +33,7 @@ namespace Quasimorph_Refill_Button
         public static void HandleShipRefill(ScreenWithShipCargo screen)
         {
             BasePickupItem item = GetContextMenuItem(screen);
-            Mercenary merc = Traverse.Create(screen).Field("_merc").GetValue<Mercenary>();
-            if (item == null || merc?.CreatureData?.Inventory == null
-                || !merc.CreatureData.Inventory.AllContainers.Contains(item.Storage))
+            if (item == null)
             {
                 return;
             }
@@ -44,7 +42,39 @@ namespace Quasimorph_Refill_Button
                 PlayFeedback(false);
                 return;
             }
+            if (!IsValidShipRefillStorage(screen, item))
+            {
+                return;
+            }
 
+            bool any = TryRefill(item, GetShipRefillSources(), SingletonMonoBehaviour<ItemFactory>.Instance.GetGameTimeNow());
+            PlayFeedback(any);
+            screen.RefreshView();
+        }
+
+        public static bool IsValidShipRefillStorage(ScreenWithShipCargo screen, BasePickupItem item)
+        {
+            if (screen is TradeShuttleScreen)
+            {
+                return IsTradeShuttleTarget(screen, item);
+            }
+            Mercenary merc = Traverse.Create(screen).Field("_merc").GetValue<Mercenary>();
+            return merc?.CreatureData?.Inventory?.AllContainers.Contains(item.Storage) == true;
+        }
+
+        private static bool IsTradeShuttleTarget(ScreenWithShipCargo screen, BasePickupItem item)
+        {
+            MagnumCargo cargo = SingletonMonoBehaviour<SpaceGameMode>.Instance.Get<MagnumCargo>();
+            if (cargo.ShipCargo.Contains(item.Storage) || item.Storage == cargo.FridgeStorage)
+            {
+                return true;
+            }
+            TradeShuttleDepartment department = Traverse.Create(screen).Field("_tradeShuttleDepartment").GetValue<TradeShuttleDepartment>();
+            return department != null && department.TradeShuttleStorage == item.Storage;
+        }
+
+        private static List<ItemStorage> GetShipRefillSources()
+        {
             MagnumCargo cargo = SingletonMonoBehaviour<SpaceGameMode>.Instance.Get<MagnumCargo>();
             MagnumProgression ship = SingletonMonoBehaviour<SpaceGameMode>.Instance.Get<MagnumProgression>();
             List<ItemStorage> sources = new List<ItemStorage>();
@@ -60,10 +90,7 @@ namespace Quasimorph_Refill_Button
             {
                 sources.Add(cargo.FridgeStorage);
             }
-
-            bool any = TryRefill(item, sources, SingletonMonoBehaviour<ItemFactory>.Instance.GetGameTimeNow());
-            PlayFeedback(any);
-            screen.RefreshView();
+            return sources;
         }
 
         public static void HandleRaidRefill(InventoryScreen screen)

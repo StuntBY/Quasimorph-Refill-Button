@@ -16,12 +16,7 @@ namespace Quasimorph_Refill_Button
 
         private static bool CanAddRefill(ScreenWithShipCargo screen, BasePickupItem item)
         {
-            if (!RefillService.CanShowRefill(item))
-            {
-                return false;
-            }
-            Mercenary merc = Traverse.Create(screen).Field("_merc").GetValue<Mercenary>();
-            return merc?.CreatureData?.Inventory?.AllContainers.Contains(item.Storage) == true;
+            return RefillService.CanShowRefill(item) && RefillService.IsValidShipRefillStorage(screen, item);
         }
     }
 
@@ -80,13 +75,21 @@ namespace Quasimorph_Refill_Button
         public static void AddRefillCommand()
         {
             CommonContextMenu menu = UI.Get<CommonContextMenu>();
-            if (menu == null || !menu.gameObject.activeSelf)
+            if (menu == null)
             {
                 return;
             }
+            bool wasActive = menu.gameObject.activeSelf;
             menu.SetupCommand(RefillService.RefillCaptionWithHotkey, RefillService.RefillCommandValue);
-            AccessTools.Method(typeof(CommonContextMenu), "InitSize").Invoke(menu, new object[] { 0 });
-            AccessTools.Method(typeof(CommonContextMenu), "RecalculatePosition").Invoke(menu, null);
+            if (wasActive)
+            {
+                AccessTools.Method(typeof(CommonContextMenu), "InitSize").Invoke(menu, new object[] { 0 });
+                AccessTools.Method(typeof(CommonContextMenu), "RecalculatePosition").Invoke(menu, null);
+            }
+            else
+            {
+                UI.Chain<CommonContextMenu>().Show().SetBackgroundOrder(-1).SetBackOnBackgroundClick(true);
+            }
         }
     }
 }
