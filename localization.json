@@ -1,13 +1,13 @@
 {
-  "EnglishUS": "Refill",
-  "Russian": "Пополнить",
-  "German": "Auffüllen",
-  "French": "Recharger",
-  "Spanish": "Rellenar",
-  "Polish": "Uzupełnij",
-  "Turkish": "Doldur",
-  "BrazilianPortugal": "Reabastecer",
-  "Korean": "채우기",
-  "Japanese": "補充",
-  "ChineseSimp": "补充"
+  "EnglishUS": { "caption": "Refill", "usagescaption": "Refill usages" },
+  "Russian": { "caption": "Пополнить", "usagescaption": "Пополнить использ-я" },
+  "German": { "caption": "Auffüllen", "usagescaption": "Verbrauch auffüllen" },
+  "French": { "caption": "Recharger", "usagescaption": "Recharger les usages" },
+  "Spanish": { "caption": "Rellenar", "usagescaption": "Rellenar usos" },
+  "Polish": { "caption": "Uzupełnij", "usagescaption": "Uzupełnij użycia" },
+  "Turkish": { "caption": "Doldur", "usagescaption": "Kullanımları doldur" },
+  "BrazilianPortugal": { "caption": "Reabastecer", "usagescaption": "Reabastecer usos" },
+  "Korean": { "caption": "채우기", "usagescaption": "사용 횟수 채우기" },
+  "Japanese": { "caption": "補充", "usagescaption": "使用回数を補充" },
+  "ChineseSimp": { "caption": "补充", "usagescaption": "补充使用次数" }
 }

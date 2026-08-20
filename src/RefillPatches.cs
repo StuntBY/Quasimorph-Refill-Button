@@ -8,15 +8,25 @@ namespace Quasimorph_Refill_Button
     {
         public static void Postfix(ScreenWithShipCargo __instance, ItemSlot __0)
         {
-            if (CanAddRefill(__instance, __0?.Item))
+            BasePickupItem item = __0?.Item;
+            if (CanAddRefill(__instance, item))
             {
-                ContextMenuCommandHelper.AddRefillCommand();
+                ContextMenuCommandHelper.AddCommand(RefillService.RefillCaptionWithHotkey, RefillService.RefillCommandValue);
+            }
+            if (CanAddRefillUsages(__instance, item))
+            {
+                ContextMenuCommandHelper.AddCommand(RefillService.RefillUsagesCaptionWithHotkey, RefillService.RefillUsagesCommandValue);
             }
         }
 
         private static bool CanAddRefill(ScreenWithShipCargo screen, BasePickupItem item)
         {
             return RefillService.CanShowRefill(item) && RefillService.IsValidShipRefillStorage(screen, item);
+        }
+
+        private static bool CanAddRefillUsages(ScreenWithShipCargo screen, BasePickupItem item)
+        {
+            return RefillService.CanShowRefillUsages(item) && RefillService.IsValidShipRefillStorage(screen, item);
         }
     }
 
@@ -25,15 +35,30 @@ namespace Quasimorph_Refill_Button
     {
         public static void Postfix(InventoryScreen __instance, ItemSlot __0)
         {
-            if (CanAddRefill(__instance, __0?.Item))
+            BasePickupItem item = __0?.Item;
+            if (CanAddRefill(__instance, item))
             {
-                ContextMenuCommandHelper.AddRefillCommand();
+                ContextMenuCommandHelper.AddCommand(RefillService.RefillCaptionWithHotkey, RefillService.RefillCommandValue);
+            }
+            if (CanAddRefillUsages(__instance, item))
+            {
+                ContextMenuCommandHelper.AddCommand(RefillService.RefillUsagesCaptionWithHotkey, RefillService.RefillUsagesCommandValue);
             }
         }
 
         private static bool CanAddRefill(InventoryScreen screen, BasePickupItem item)
         {
-            if (!RefillService.CanShowRefill(item))
+            return CanAddForItem(screen, item, RefillService.CanShowRefill);
+        }
+
+        private static bool CanAddRefillUsages(InventoryScreen screen, BasePickupItem item)
+        {
+            return CanAddForItem(screen, item, RefillService.CanShowRefillUsages);
+        }
+
+        private static bool CanAddForItem(InventoryScreen screen, BasePickupItem item, System.Func<BasePickupItem, bool> canShow)
+        {
+            if (!canShow(item))
             {
                 return false;
             }
@@ -51,12 +76,17 @@ namespace Quasimorph_Refill_Button
     {
         public static bool Prefix(ScreenWithShipCargo __instance, int bindValue)
         {
-            if (bindValue != RefillService.RefillCommandValue)
+            if (bindValue == RefillService.RefillCommandValue)
             {
-                return true;
+                RefillService.HandleShipRefill(__instance);
+                return false;
             }
-            RefillService.HandleShipRefill(__instance);
-            return false;
+            if (bindValue == RefillService.RefillUsagesCommandValue)
+            {
+                RefillService.HandleShipRefill(__instance, usagesOnly: true);
+                return false;
+            }
+            return true;
         }
     }
 
@@ -65,18 +95,23 @@ namespace Quasimorph_Refill_Button
     {
         public static bool Prefix(InventoryScreen __instance, int bindValue)
         {
-            if (bindValue != RefillService.RefillCommandValue)
+            if (bindValue == RefillService.RefillCommandValue)
             {
-                return true;
+                RefillService.HandleRaidRefill(__instance);
+                return false;
             }
-            RefillService.HandleRaidRefill(__instance);
-            return false;
+            if (bindValue == RefillService.RefillUsagesCommandValue)
+            {
+                RefillService.HandleRaidRefill(__instance, usagesOnly: true);
+                return false;
+            }
+            return true;
         }
     }
 
     internal static class ContextMenuCommandHelper
     {
-        public static void AddRefillCommand()
+        public static void AddCommand(string caption, int commandValue)
         {
             CommonContextMenu menu = UI.Get<CommonContextMenu>();
             if (menu == null)
@@ -84,7 +119,7 @@ namespace Quasimorph_Refill_Button
                 return;
             }
             bool wasActive = menu.gameObject.activeSelf;
-            menu.SetupCommand(RefillService.RefillCaptionWithHotkey, RefillService.RefillCommandValue);
+            menu.SetupCommand(caption, commandValue);
             if (wasActive)
             {
                 AccessTools.Method(typeof(CommonContextMenu), "InitSize").Invoke(menu, new object[] { 0 });

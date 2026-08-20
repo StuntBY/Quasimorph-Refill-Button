@@ -10,11 +10,19 @@ namespace Quasimorph_Refill_Button
     {
         public const int RefillCommandValue = 200000;
 
+        public const int RefillUsagesCommandValue = 200001;
+
         public const string RefillCaptionKey = "mod.refillbutton.caption";
+
+        public const string RefillUsagesCaptionKey = "mod.refillbutton.usagescaption";
 
         public const KeyCode RefillHotkeyKey = KeyCode.F;
 
+        public const KeyCode RefillUsagesHotkeyKey = KeyCode.U;
+
         public static string RefillCaptionWithHotkey => ("F ").WrapInColor(Colors.Yellow) + (Localization.HasKey(RefillCaptionKey) ? Localization.Get(RefillCaptionKey) : "Refill");
+
+        public static string RefillUsagesCaptionWithHotkey => ("U ").WrapInColor(Colors.Yellow) + (Localization.HasKey(RefillUsagesCaptionKey) ? Localization.Get(RefillUsagesCaptionKey) : "Refill usages");
 
         public static bool CanShowRefill(BasePickupItem item)
         {
@@ -24,19 +32,28 @@ namespace Quasimorph_Refill_Button
                 && ((item.IsStackable && !item.IsFullStack) || (item.IsUsable && !item.HasFullUsages));
         }
 
+        public static bool CanShowRefillUsages(BasePickupItem item)
+        {
+            return item != null
+                && !item.Locked
+                && !item.IsImplicit
+                && item.IsUsable
+                && !item.HasFullUsages;
+        }
+
         public static BasePickupItem GetContextMenuItem(object screen)
         {
             return Traverse.Create(screen).Field("_contextMenuItemSlot").GetValue<ItemSlot>()?.Item;
         }
 
-        public static void HandleShipRefill(ScreenWithShipCargo screen)
+        public static void HandleShipRefill(ScreenWithShipCargo screen, bool usagesOnly = false)
         {
             BasePickupItem item = GetContextMenuItem(screen);
             if (item == null)
             {
                 return;
             }
-            if (!CanShowRefill(item))
+            if (usagesOnly ? !CanShowRefillUsages(item) : !CanShowRefill(item))
             {
                 PlayFeedback(false);
                 return;
@@ -53,7 +70,8 @@ namespace Quasimorph_Refill_Button
                 sources.AddRange(operatorInventory.AllContainers);
             }
 
-            bool any = TryRefill(item, sources, SingletonMonoBehaviour<ItemFactory>.Instance.GetGameTimeNow());
+            SpaceTime spaceTime = SingletonMonoBehaviour<ItemFactory>.Instance.GetGameTimeNow();
+            bool any = usagesOnly ? TryRefillUsages(item, sources, spaceTime) : TryRefill(item, sources, spaceTime);
             PlayFeedback(any);
             screen.RefreshView();
         }
@@ -133,19 +151,22 @@ namespace Quasimorph_Refill_Button
             return sources;
         }
 
-        public static void HandleRaidRefill(InventoryScreen screen)
+        public static void HandleRaidRefill(InventoryScreen screen, bool usagesOnly = false)
         {
             Traverse t = Traverse.Create(screen);
             BasePickupItem item = GetContextMenuItem(screen);
-            if (item == null || !CanShowRefill(item))
+            if (item == null || (usagesOnly ? !CanShowRefillUsages(item) : !CanShowRefill(item)))
             {
                 PlayFeedback(false);
                 return;
             }
 
+            SpaceTime spaceTime = SingletonMonoBehaviour<ItemFactory>.Instance.GetGameTimeNow();
             if (IsShipCargoItem(item))
             {
-                bool anyCargo = TryRefill(item, GetShipRefillSources(), SingletonMonoBehaviour<ItemFactory>.Instance.GetGameTimeNow());
+                bool anyCargo = usagesOnly
+                    ? TryRefillUsages(item, GetShipRefillSources(), spaceTime)
+                    : TryRefill(item, GetShipRefillSources(), spaceTime);
                 PlayFeedback(anyCargo);
                 screen.RefreshItemsList();
                 return;
@@ -173,7 +194,7 @@ namespace Quasimorph_Refill_Button
                 return;
             }
 
-            bool any = TryRefill(item, sources, SingletonMonoBehaviour<ItemFactory>.Instance.GetGameTimeNow());
+            bool any = usagesOnly ? TryRefillUsages(item, sources, spaceTime) : TryRefill(item, sources, spaceTime);
             if (!any)
             {
                 PlayFeedback(false);
@@ -228,25 +249,13 @@ namespace Quasimorph_Refill_Button
                     }
                     if (target.IsUsable && target.IsFullStack && !target.HasFullUsages && source.IsUsable)
                     {
-                        UsableItemComponent targetComp = target.Comp<UsableItemComponent>();
-                        UsableItemComponent sourceComp = source.Comp<UsableItemComponent>();
-                        if (targetComp == null || sourceComp == null || sourceComp.CurrentUsageValue <= 0)
+                        if (TryTransferUsages(target, source, target.MaxStack, spaceTime))
                         {
-                            continue;
-                        }
-                        target.UpdateUsagesAtReStack(source);
-                        target.StackCount = (short)targetComp.GetStackCount();
-                        source.StackCount = (short)sourceComp.GetStackCount();
-                        target.UpdateExpireAtRestack(spaceTime, source);
-                        source.UpdateExpireAtRestack(spaceTime, target);
-                        any = true;
-                        if (sourceComp.CurrentUsageValue <= 0)
-                        {
-                            source.Storage?.Remove(source);
-                        }
-                        if (targetComp.IsMax)
-                        {
-                            return any;
+                            any = true;
+                            if (target.HasFullUsages)
+                            {
+                                return any;
+                            }
                         }
                         continue;
                     }
@@ -266,6 +275,66 @@ namespace Quasimorph_Refill_Button
                 }
             }
             return any;
+        }
+
+        private static bool TryRefillUsages(BasePickupItem target, IEnumerable<ItemStorage> sources, SpaceTime spaceTime)
+        {
+            if (target == null || !target.IsUsable || target.HasFullUsages)
+            {
+                return false;
+            }
+            bool any = false;
+            short stackCount = target.StackCount;
+            foreach (ItemStorage storage in sources)
+            {
+                if (storage == null)
+                {
+                    continue;
+                }
+                foreach (BasePickupItem source in storage.Items.ToList())
+                {
+                    if (source == null || ReferenceEquals(source, target) || source.Id != target.Id || !source.IsUsable)
+                    {
+                        continue;
+                    }
+                    if (TryTransferUsages(target, source, stackCount, spaceTime))
+                    {
+                        any = true;
+                        target.StackCount = stackCount;
+                        if (target.HasFullUsages)
+                        {
+                            return any;
+                        }
+                    }
+                }
+            }
+            target.StackCount = stackCount;
+            return any;
+        }
+
+        private static bool TryTransferUsages(BasePickupItem target, BasePickupItem source, int usageStackCap, SpaceTime spaceTime)
+        {
+            UsableItemComponent targetComp = target.Comp<UsableItemComponent>();
+            UsableItemComponent sourceComp = source.Comp<UsableItemComponent>();
+            if (targetComp == null || sourceComp == null || sourceComp.CurrentUsageValue <= 0)
+            {
+                return false;
+            }
+            int before = targetComp.CurrentUsageValue;
+            targetComp.MergeUsages(sourceComp, usageStackCap);
+            if (targetComp.CurrentUsageValue == before)
+            {
+                return false;
+            }
+            target.StackCount = (short)targetComp.GetStackCount();
+            source.StackCount = (short)sourceComp.GetStackCount();
+            target.UpdateExpireAtRestack(spaceTime, source);
+            source.UpdateExpireAtRestack(spaceTime, target);
+            if (sourceComp.CurrentUsageValue <= 0)
+            {
+                source.Storage?.Remove(source);
+            }
+            return true;
         }
 
         private static void PlayFeedback(bool any)

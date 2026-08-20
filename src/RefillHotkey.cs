@@ -26,7 +26,13 @@ namespace Quasimorph_Refill_Button
 
         private static void TryTriggerRefill()
         {
-            if (!Input.GetKeyUp(RefillService.RefillHotkeyKey))
+            TryTriggerCommand(RefillService.RefillHotkeyKey, RefillService.RefillCommandValue);
+            TryTriggerCommand(RefillService.RefillUsagesHotkeyKey, RefillService.RefillUsagesCommandValue);
+        }
+
+        private static void TryTriggerCommand(KeyCode key, int commandValue)
+        {
+            if (!Input.GetKeyUp(key))
             {
                 return;
             }
@@ -40,7 +46,7 @@ namespace Quasimorph_Refill_Button
             {
                 return;
             }
-            CommonButton refillButton = binds.FirstOrDefault(x => x.Value == RefillService.RefillCommandValue).Key;
+            CommonButton refillButton = binds.FirstOrDefault(x => x.Value == commandValue).Key;
             if (refillButton == null)
             {
                 return;
