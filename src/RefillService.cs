@@ -250,6 +250,17 @@ namespace Quasimorph_Refill_Button
 
         private static bool TryRefill(BasePickupItem target, IEnumerable<ItemStorage> sources, SpaceTime spaceTime)
         {
+            bool any = TryRefillFrom(target, sources, spaceTime, takeNonFull: true);
+            if (target.IsFullStack && target.HasFullUsages)
+            {
+                return any;
+            }
+            any |= TryRefillFrom(target, sources, spaceTime, takeNonFull: false);
+            return any;
+        }
+
+        private static bool TryRefillFrom(BasePickupItem target, IEnumerable<ItemStorage> sources, SpaceTime spaceTime, bool takeNonFull)
+        {
             bool any = false;
             foreach (ItemStorage storage in sources)
             {
@@ -260,6 +271,10 @@ namespace Quasimorph_Refill_Button
                 foreach (BasePickupItem source in storage.Items.ToList())
                 {
                     if (source == null || ReferenceEquals(source, target) || source.Id != target.Id)
+                    {
+                        continue;
+                    }
+                    if (source.IsFullStack == takeNonFull)
                     {
                         continue;
                     }
@@ -299,8 +314,20 @@ namespace Quasimorph_Refill_Button
             {
                 return false;
             }
-            bool any = false;
             short stackCount = target.StackCount;
+            bool any = TryRefillUsagesFrom(target, sources, spaceTime, stackCount, takeNonFull: true);
+            if (target.HasFullUsages)
+            {
+                return any;
+            }
+            any |= TryRefillUsagesFrom(target, sources, spaceTime, stackCount, takeNonFull: false);
+            target.StackCount = stackCount;
+            return any;
+        }
+
+        private static bool TryRefillUsagesFrom(BasePickupItem target, IEnumerable<ItemStorage> sources, SpaceTime spaceTime, int stackCount, bool takeNonFull)
+        {
+            bool any = false;
             foreach (ItemStorage storage in sources)
             {
                 if (storage == null)
@@ -313,10 +340,14 @@ namespace Quasimorph_Refill_Button
                     {
                         continue;
                     }
+                    if (source.IsFullStack == takeNonFull)
+                    {
+                        continue;
+                    }
                     if (TryTransferUsages(target, source, stackCount, spaceTime))
                     {
                         any = true;
-                        target.StackCount = stackCount;
+                        target.StackCount = (short)stackCount;
                         if (target.HasFullUsages)
                         {
                             return any;
@@ -324,7 +355,6 @@ namespace Quasimorph_Refill_Button
                     }
                 }
             }
-            target.StackCount = stackCount;
             return any;
         }
 
