@@ -23,6 +23,8 @@ namespace Quasimorph_Refill_Button
 
         public bool HideRefillUsagesKeybindHighlight { get; set; }
 
+        public bool HideRefillUsagesInRaid { get; set; }
+
         public void Save(string configPath)
         {
             JsonSerializerSettings serializerSettings = new JsonSerializerSettings()

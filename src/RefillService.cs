@@ -33,6 +33,13 @@ namespace Quasimorph_Refill_Button
             return (key.ToString() + " ").WrapInColor(Colors.Yellow);
         }
 
+        internal static bool RefillUsagesHiddenInRaid;
+
+        public static bool IsRaid()
+        {
+            return SingletonMonoBehaviour<DungeonGameMode>.Instance != null;
+        }
+
         public static bool CanShowRefill(BasePickupItem item)
         {
             return item != null

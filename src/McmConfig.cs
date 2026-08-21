@@ -34,6 +34,13 @@ namespace Quasimorph_Refill_Button
                     Plugin.Config.HideRefillUsagesKeybindHighlight,
                     "Hides the keybind from the Refill usages command caption.",
                     "Hide keybind highlight"),
+                new ConfigValue(
+                    nameof(ModConfig.HideRefillUsagesInRaid),
+                    Plugin.Config.HideRefillUsagesInRaid,
+                    "Refill usages button settings",
+                    Plugin.Config.HideRefillUsagesInRaid,
+                    "Hides the Refill usages button in raids. The hotkey still works.",
+                    "Hide in raid"),
                 CreateKeyDropdown(
                     nameof(ModConfig.RefillUsagesHotkeyKey),
                     Plugin.Config.RefillUsagesHotkeyKey,
@@ -70,6 +77,7 @@ namespace Quasimorph_Refill_Button
                 Plugin.Config.HideRefillKeybindHighlight = Convert.ToBoolean(currentConfig[nameof(ModConfig.HideRefillKeybindHighlight)]);
                 Plugin.Config.RefillHotkeyKey = ParseKey(currentConfig[nameof(ModConfig.RefillHotkeyKey)], KeyCode.F);
                 Plugin.Config.HideRefillUsagesKeybindHighlight = Convert.ToBoolean(currentConfig[nameof(ModConfig.HideRefillUsagesKeybindHighlight)]);
+                Plugin.Config.HideRefillUsagesInRaid = Convert.ToBoolean(currentConfig[nameof(ModConfig.HideRefillUsagesInRaid)]);
                 Plugin.Config.RefillUsagesHotkeyKey = ParseKey(currentConfig[nameof(ModConfig.RefillUsagesHotkeyKey)], KeyCode.U);
                 Plugin.Config.Save(Plugin.ConfigDirectories.ConfigPath);
                 return true;

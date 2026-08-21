@@ -49,6 +49,15 @@ namespace Quasimorph_Refill_Button
             CommonButton refillButton = binds.FirstOrDefault(x => x.Value == commandValue).Key;
             if (refillButton == null)
             {
+                if (commandValue == RefillService.RefillUsagesCommandValue && RefillService.RefillUsagesHiddenInRaid)
+                {
+                    InventoryScreen screen = UI.GetActiveViews().FirstOrDefault(x => x is InventoryScreen) as InventoryScreen;
+                    if (screen != null)
+                    {
+                        UI.Hide<CommonContextMenu>();
+                        RefillService.HandleRaidRefill(screen, usagesOnly: true);
+                    }
+                }
                 return;
             }
             OnContextCommandClickMethod.Invoke(menu, new object[] { refillButton, 1 });

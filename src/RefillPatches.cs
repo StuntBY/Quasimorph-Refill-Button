@@ -8,6 +8,7 @@ namespace Quasimorph_Refill_Button
     {
         public static void Postfix(ScreenWithShipCargo __instance, ItemSlot __0)
         {
+            RefillService.RefillUsagesHiddenInRaid = false;
             BasePickupItem item = __0?.Item;
             if (CanAddRefill(__instance, item))
             {
@@ -35,6 +36,7 @@ namespace Quasimorph_Refill_Button
     {
         public static void Postfix(InventoryScreen __instance, ItemSlot __0)
         {
+            RefillService.RefillUsagesHiddenInRaid = false;
             BasePickupItem item = __0?.Item;
             if (CanAddRefill(__instance, item))
             {
@@ -42,7 +44,14 @@ namespace Quasimorph_Refill_Button
             }
             if (CanAddRefillUsages(__instance, item))
             {
-                ContextMenuCommandHelper.AddCommand(RefillService.RefillUsagesCaptionWithHotkey, RefillService.RefillUsagesCommandValue);
+                if (RefillService.IsRaid() && (Plugin.Config?.HideRefillUsagesInRaid ?? false))
+                {
+                    RefillService.RefillUsagesHiddenInRaid = true;
+                }
+                else
+                {
+                    ContextMenuCommandHelper.AddCommand(RefillService.RefillUsagesCaptionWithHotkey, RefillService.RefillUsagesCommandValue);
+                }
             }
         }
 
