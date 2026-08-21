@@ -18,7 +18,7 @@ namespace Quasimorph_Refill_Button
 
         public static KeyCode RefillHotkeyKey => Plugin.Config?.RefillHotkeyKey ?? KeyCode.F;
 
-        public static KeyCode RefillUsagesHotkeyKey => Plugin.Config?.RefillUsagesHotkeyKey ?? KeyCode.U;
+        public static KeyCode RefillUsagesHotkeyKey => Plugin.Config?.RefillUsagesHotkeyKey ?? KeyCode.H;
 
         public static string RefillCaptionWithHotkey => RefillHotkeyPrefix(RefillHotkeyKey, Plugin.Config?.HideRefillKeybindHighlight ?? false) + (Localization.HasKey(RefillCaptionKey) ? Localization.Get(RefillCaptionKey) : "Refill");
 

@@ -19,11 +19,11 @@ namespace Quasimorph_Refill_Button
         public bool HideRefillKeybindHighlight { get; set; }
 
         [JsonConverter(typeof(StringEnumConverter))]
-        public KeyCode RefillUsagesHotkeyKey { get; set; } = KeyCode.U;
+        public KeyCode RefillUsagesHotkeyKey { get; set; } = KeyCode.H;
 
         public bool HideRefillUsagesKeybindHighlight { get; set; }
 
-        public bool HideRefillUsagesInRaid { get; set; }
+        public bool HideRefillUsagesInRaid { get; set; } = true;
 
         public void Save(string configPath)
         {
