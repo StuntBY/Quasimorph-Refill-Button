@@ -28,6 +28,18 @@ namespace Quasimorph_Refill_Button
 
             Config = ModConfig.LoadConfig(ConfigDirectories.ConfigPath);
 
+            RefillLocalization.InjectLocalization(context);
+
+            try
+            {
+                McmConfig.Register();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning("Mod Configuration Menu is not available. Config menu registration skipped.");
+                Logger.LogException(ex);
+            }
+
             Harmony harmony = new Harmony("Stunt_" + ConfigDirectories.ModAssemblyName);
             InputHelperSuppressPatch.Patch(harmony);
             harmony.PatchAll();

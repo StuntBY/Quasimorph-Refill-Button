@@ -13,6 +13,27 @@ namespace Quasimorph_Refill_Button
 {
     public class ModConfig
     {
+        [JsonConverter(typeof(StringEnumConverter))]
+        public KeyCode RefillHotkeyKey { get; set; } = KeyCode.F;
+
+        public bool HideRefillKeybindHighlight { get; set; }
+
+        [JsonConverter(typeof(StringEnumConverter))]
+        public KeyCode RefillUsagesHotkeyKey { get; set; } = KeyCode.U;
+
+        public bool HideRefillUsagesKeybindHighlight { get; set; }
+
+        public void Save(string configPath)
+        {
+            JsonSerializerSettings serializerSettings = new JsonSerializerSettings()
+            {
+                Formatting = Formatting.Indented,
+            };
+
+            string json = JsonConvert.SerializeObject(this, serializerSettings);
+            File.WriteAllText(configPath, json);
+        }
+
         public static ModConfig LoadConfig(string configPath)
         {
             ModConfig config;

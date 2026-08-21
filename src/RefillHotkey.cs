@@ -32,7 +32,7 @@ namespace Quasimorph_Refill_Button
 
         private static void TryTriggerCommand(KeyCode key, int commandValue)
         {
-            if (!Input.GetKeyUp(key))
+            if (key == KeyCode.None || !Input.GetKeyUp(key))
             {
                 return;
             }

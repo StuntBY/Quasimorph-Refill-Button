@@ -10,19 +10,28 @@ namespace Quasimorph_Refill_Button
     {
         public const int RefillCommandValue = 200000;
 
-        public const int RefillUsagesCommandValue = 200001;
-
         public const string RefillCaptionKey = "mod.refillbutton.caption";
+
+        public const int RefillUsagesCommandValue = 200001;
 
         public const string RefillUsagesCaptionKey = "mod.refillbutton.usagescaption";
 
-        public const KeyCode RefillHotkeyKey = KeyCode.F;
+        public static KeyCode RefillHotkeyKey => Plugin.Config?.RefillHotkeyKey ?? KeyCode.F;
 
-        public const KeyCode RefillUsagesHotkeyKey = KeyCode.U;
+        public static KeyCode RefillUsagesHotkeyKey => Plugin.Config?.RefillUsagesHotkeyKey ?? KeyCode.U;
 
-        public static string RefillCaptionWithHotkey => ("F ").WrapInColor(Colors.Yellow) + (Localization.HasKey(RefillCaptionKey) ? Localization.Get(RefillCaptionKey) : "Refill");
+        public static string RefillCaptionWithHotkey => RefillHotkeyPrefix(RefillHotkeyKey, Plugin.Config?.HideRefillKeybindHighlight ?? false) + (Localization.HasKey(RefillCaptionKey) ? Localization.Get(RefillCaptionKey) : "Refill");
 
-        public static string RefillUsagesCaptionWithHotkey => ("U ").WrapInColor(Colors.Yellow) + (Localization.HasKey(RefillUsagesCaptionKey) ? Localization.Get(RefillUsagesCaptionKey) : "Refill usages");
+        public static string RefillUsagesCaptionWithHotkey => RefillHotkeyPrefix(RefillUsagesHotkeyKey, Plugin.Config?.HideRefillUsagesKeybindHighlight ?? false) + (Localization.HasKey(RefillUsagesCaptionKey) ? Localization.Get(RefillUsagesCaptionKey) : "Refill usages");
+
+        private static string RefillHotkeyPrefix(KeyCode key, bool hide)
+        {
+            if (hide || key == KeyCode.None)
+            {
+                return "";
+            }
+            return (key.ToString() + " ").WrapInColor(Colors.Yellow);
+        }
 
         public static bool CanShowRefill(BasePickupItem item)
         {

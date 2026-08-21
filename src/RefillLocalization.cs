@@ -10,8 +10,7 @@ namespace Quasimorph_Refill_Button
 {
     public static class RefillLocalization
     {
-        [Hook(ModHookType.AfterConfigsLoaded)]
-        public static void OnAfterConfigsLoaded(IModContext context)
+        public static void InjectLocalization(IModContext context)
         {
             string path = Path.Combine(context.ModContentPath, "localization.json");
             if (!File.Exists(path))
